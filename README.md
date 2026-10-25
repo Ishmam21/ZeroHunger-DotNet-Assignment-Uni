@@ -11,14 +11,16 @@ This project is intended to run locally and be shared as source on GitHub. It ha
 - [Project overview](#project-overview)
 - [Architecture](#architecture)
 - [API areas](#api-areas)
+- [Example requests](#example-requests)
 - [Technology stack](#technology-stack)
 - [Run locally](#run-locally)
 - [Database](#database)
+- [Design decisions](#design-decisions)
 - [Notes](#notes)
 
 ## Project overview
 
-The API supports restaurant and employee records, plus a collection-request workflow. A separate ASP.NET Core MVC project in this repository provides a web interface and uses the same business and data projects.
+The API supports restaurant and employee records, plus a collection-request workflow. A restaurant posts a request with a pickup deadline, an employee accepts it, collects the food, and completes it.
 
 ## Architecture
 
@@ -26,27 +28,27 @@ The solution separates HTTP handling, business operations, and database access i
 
 ```text
 HTTP clients
-    ├── AppLayerAPI (ASP.NET Core controllers / JSON endpoints)
-    └── ZeroHungerMVC (server-rendered MVC web interface)
-                  │
-                  ▼
-             BLL (services, models, AutoMapper profile)
-                  │
-                  ▼
-             DAL (repositories, EF Core DbContext and entities)
-                  │
-                  ▼
-             SQL Server
+     │
+     ▼
+AppLayerAPI (ASP.NET Core controllers / JSON endpoints)
+     │
+     ▼
+BLL (services, models, AutoMapper profile)
+     │
+     ▼
+DAL (repositories, EF Core DbContext and entities)
+     │
+     ▼
+SQL Server
 ```
 
-- **AppLayerAPI** defines REST-style controllers and registers services, repositories, AutoMapper, and the SQL Server context through dependency injection.
+- **AppLayerAPI** defines the controllers and registers services, repositories, AutoMapper, and the SQL Server context through dependency injection.
 - **BLL** contains service classes and API-facing models. Services map between models and database entities with AutoMapper.
 - **DAL** contains repository classes and `ZeroHungerDbContext`, which maps entities to SQL Server tables.
-- **ZeroHungerMVC** is a separate Razor MVC web application. It references the same BLL and DAL projects and uses session-based login in its own web layer.
 
 ## API areas
 
-Routes use controller names as their prefixes (for example, `/Restaurant` and `/CollectRequest`). The API project exposes:
+Routes use controller names as their prefixes (for example, `/Restaurant` and `/CollectRequest`). The API exposes:
 
 | Area | Capabilities |
 | --- | --- |
@@ -54,17 +56,58 @@ Routes use controller names as their prefixes (for example, `/Restaurant` and `/
 | Employees | List, retrieve, create, update, and delete employee records |
 | Collection requests | CRUD operations; filter by status, restaurant, or employee; list pending requests by deadline; accept, collect, complete, or reject a request |
 
-In development, the API maps its OpenAPI document. The default ASP.NET Core weather forecast sample endpoint is also present.
+In development, the API maps its OpenAPI document at `/openapi/v1.json`.
+
+## Example requests
+
+These assume the API is running on the default local address from `launchSettings.json` (`http://localhost:5133`).
+
+Create a restaurant:
+
+```sh
+curl -X POST http://localhost:5133/Restaurant/create \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Green Bowl","address":"12 Lake Road"}'
+```
+
+Create an employee:
+
+```sh
+curl -X POST http://localhost:5133/Employee/create \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Rafi","phno":"01712345678"}'
+```
+
+Create a collection request for restaurant 1 (it is saved as `Pending`):
+
+```sh
+curl -X POST http://localhost:5133/CollectRequest/create \
+  -H "Content-Type: application/json" \
+  -d '{"resid":1,"status":"Pending","maxtime":"2026-11-05T18:00:00"}'
+```
+
+Let employee 1 accept request 1:
+
+```sh
+curl -X PUT http://localhost:5133/CollectRequest/1/accept \
+  -H "Content-Type: application/json" \
+  -d '1'
+```
+
+List pending requests, most urgent first:
+
+```sh
+curl http://localhost:5133/CollectRequest/urgent
+```
 
 ## Technology stack
 
 | Area | Technology |
 | --- | --- |
-| API and web app | ASP.NET Core / .NET 10 |
+| API | ASP.NET Core / .NET 10 |
 | Data access | Entity Framework Core 10 |
 | Database provider | Microsoft SQL Server |
 | Entity/model mapping | AutoMapper |
-| Web interface | ASP.NET Core MVC, Razor, Bootstrap |
 
 ## Run locally
 
@@ -96,21 +139,9 @@ dotnet run --project AppLayerAPI
 
 The launch profile selects the local URL. In Development, the OpenAPI document is available at `/openapi/v1.json` on that API host.
 
-### Start the MVC application (optional)
-
-The MVC project uses the same `DbConn` configuration key. Configure User Secrets for it as well, then run:
-
-```sh
-cd ZeroHungerMVC
-dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DbConn" "Server=localhost,1433;Database=ZeroHungerDb;User Id=sa;Password=<your-local-password>;TrustServerCertificate=True"
-cd ..
-dotnet run --project ZeroHungerMVC
-```
-
 ## Database
 
-The EF Core context maps these core tables. This repository does not include a migrations directory or database creation script, so provide a compatible database before running the applications.
+The EF Core context maps these core tables. This repository does not include a migrations directory or database creation script, so provide a compatible database before running the API.
 
 | Table | Required columns | Purpose |
 | --- | --- | --- |
@@ -120,8 +151,17 @@ The EF Core context maps these core tables. This repository does not include a m
 
 `CollectRequest.resid` references `Restaurant.id`; nullable `CollectRequest.empid` references `Employee.id`. New requests are saved as `Pending` with no employee assigned. The urgent-request endpoint returns pending requests ordered by `maxtime`.
 
+## Design decisions
+
+### Thin controllers
+
+Controllers only translate HTTP to a service call and back. Queries live in the DAL, and services in the BLL sit between them.
+
+### Models separate from entities
+
+The API sends and receives BLL models, not database entities, so a database change does not silently change the API's JSON.
+
 ## Notes
 
-- No screenshots are included in the repository yet.
-- The API currently registers restaurant, employee, and collection-request services. Login and registration logic exists in the shared BLL and is used by the MVC app; the API does not currently expose authentication endpoints.
+- There is no authentication. Every endpoint is open, which is fine for a local project but not for a deployed service.
 - The API connection string is intentionally omitted from tracked settings. Configure it with User Secrets before running locally; the project has a `UserSecretsId` for that purpose.
