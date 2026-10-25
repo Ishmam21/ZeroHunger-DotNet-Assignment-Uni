@@ -1,0 +1,15 @@
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/bin/Debug/net10.0/BLL.deps.json
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/bin/Debug/net10.0/BLL.dll
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/bin/Debug/net10.0/BLL.pdb
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/bin/Debug/net10.0/DAL.dll
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/bin/Debug/net10.0/DAL.pdb
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.csproj.AssemblyReference.cache
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.AssemblyInfoInputs.cache
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.AssemblyInfo.cs
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.csproj.CoreCompileInputs.cache
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.csproj.Up2Date
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.dll
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/refint/BLL.dll
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/BLL.pdb
+/Users/fahimishmam/Desktop/VS stuff/dotNetAssignment/BLL/obj/Debug/net10.0/ref/BLL.dll
